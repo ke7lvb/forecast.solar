@@ -30,7 +30,7 @@ metadata {
 }
 
 def version() {
-  return "1.0.0"
+  return "1.0.1"
 }
 
 def installed() {
@@ -58,6 +58,7 @@ def updated() {
   state.version = version()
 }
 
+import groovy.json.JsonOutput;
 def refresh() {
   today = new Date().format('yyyy-MM-dd')
   tomorrow = new Date().next().format("yyyy-MM-dd")
@@ -68,7 +69,7 @@ def refresh() {
     sendEvent(name: "power", value: state.estimatedWattHoursToday)
     state.estimatedWattHoursTomorrow = respData.watt_hours_day[tomorrow]
     sendEvent(name: "estimatedWattHoursTomorrow", value: state.estimatedWattHoursTomorrow)
-    state.JSON = resp.data
+    state.JSON = JsonOutput.toJson(resp.data)
     state.lastUpdate = new Date()
   }
 }
