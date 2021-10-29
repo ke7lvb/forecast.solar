@@ -18,6 +18,7 @@ metadata {
     input name: "dec", type: "string", title: "Declination", description: "0-90", required: true
     input name: "az", type: "string", title: "Azimuth", description: "", required: true
     input name: "kwp", type: "string", title: "Kilowatt Production", description: "", required: true
+    input name: "damping", type: "number", title: "Damping", description: ""
     input("refresh_interval", "enum", title: "How often to refresh the battery data", options: [
       0: "Do NOT update",
       1: "1 Hour",
@@ -62,7 +63,8 @@ import groovy.json.JsonOutput;
 def refresh() {
   today = new Date().format('yyyy-MM-dd')
   tomorrow = new Date().next().format("yyyy-MM-dd")
-  host = "https://api.forecast.solar/estimate/${lat}/${lng}/${dec}/${az}/${kwp}"
+  host = "https://api.forecast.solar/estimate/${lat}/${lng}/${dec}/${az}/${kwp}?damping=${damping}"
+  if (logEnable) log.info host
   httpGet([uri: host]) {
     resp -> def respData = resp.data.result
     state.estimatedWattHoursToday = respData.watt_hours_day[today]
