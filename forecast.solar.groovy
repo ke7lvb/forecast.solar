@@ -32,7 +32,7 @@ metadata {
 }
 
 def version() {
-  return "1.0.2"
+  return "1.0.3"
 }
 
 def installed() {
@@ -62,6 +62,7 @@ def updated() {
 }
 
 import groovy.json.JsonOutput;
+import java.util.TimeZone
 def refresh() {
   today = new Date().format('yyyy-MM-dd')
   tomorrow = new Date().next().format("yyyy-MM-dd")
@@ -69,14 +70,15 @@ def refresh() {
   host = "https://api.forecast.solar/estimate/${lat}/${lng}/${dec}/${az}/${kwp}?damping=${damping}"
   if (logEnable) log.info host
   httpGet([uri: host]) {
-    resp -> def respData = resp.data.result
-      state.estimatedWattHoursToday = respData.watt_hours_day[today]
+    resp -> def respData = resp.data
+      state.estimatedWattHoursToday = respData.result.watt_hours_day[today]
       sendEvent(name: "power", value: state.estimatedWattHoursToday)
-      state.estimatedWattHoursTomorrow = respData.watt_hours_day[tomorrow]
+      state.estimatedWattHoursTomorrow = respData.result.watt_hours_day[tomorrow]
       sendEvent(name: "estimatedWattHoursTomorrow", value: state.estimatedWattHoursTomorrow)
-      state.estimatedWattHoursTwoDays = respData.watt_hours_day[twoDays]
+      state.estimatedWattHoursTwoDays = respData.result.watt_hours_day[twoDays]
       sendEvent(name: "estimatedWattHoursTwoDays", value: state.estimatedWattHoursTwoDays)
-    state.JSON = JsonOutput.toJson(resp.data)
-    state.lastUpdate = new Date()
+      state.JSON = JsonOutput.toJson(respData)
+      tz = TimeZone.getTimeZone(respData.message.info.timezone)
+      state.lastUpdate = new Date().format("MM/dd/yyy HH:mm zzz",tz)
   }
 }
