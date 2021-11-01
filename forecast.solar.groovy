@@ -32,7 +32,7 @@ metadata {
 }
 
 def version() {
-  return "1.0.3"
+  return "1.0.4"
 }
 
 def installed() {
@@ -62,8 +62,9 @@ def updated() {
 }
 
 import groovy.json.JsonOutput;
-import java.util.TimeZone
 def refresh() {
+  now = new Date().format("yyyy-MM-dd'T'HH:mm:ss'Z'")
+  log.info timeToday(now, location.timeZone)
   today = new Date().format('yyyy-MM-dd')
   tomorrow = new Date().next().format("yyyy-MM-dd")
   twoDays = new Date().plus(2).format("yyyy-MM-dd")
@@ -78,7 +79,7 @@ def refresh() {
       state.estimatedWattHoursTwoDays = respData.result.watt_hours_day[twoDays]
       sendEvent(name: "estimatedWattHoursTwoDays", value: state.estimatedWattHoursTwoDays)
       state.JSON = JsonOutput.toJson(respData)
-      tz = TimeZone.getTimeZone(respData.message.info.timezone)
-      state.lastUpdate = new Date().format("MM/dd/yyy HH:mm zzz",tz)
+      now = new Date().format("yyyy-MM-dd'T'HH:mm:ss'Z'")
+      state.lastUpdate = timeToday(now, location.timeZone)
   }
 }
