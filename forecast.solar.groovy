@@ -3,7 +3,7 @@ metadata {
     name: "Forecast.Solar",
     namespace: "ke7lvb",
     author: "Ryan Lundell",
-    importUrl: "https://raw.githubusercontent.com/ke7lvb/forecast.solar/main/forecast.solar.groovy",
+    importUrl: "https://raw.githubusercontent.com/ke7lvb/forecast.solar/2-Panel-Groups/forecast.solar.groovy",
   ) {
     capability "Refresh"
     capability "PowerMeter"
@@ -17,9 +17,11 @@ metadata {
     input name: "lat", type: "string", title: "Latitude", description: "", required: true
     input name: "lng", type: "string", title: "Longitude", description: "", required: true
     input name: "dec", type: "string", title: "Declination", description: "0-90", required: true
-    input name: "az", type: "string", title: "Azimuth", description: "", required: true
-    input name: "kwp", type: "string", title: "Kilowatt Production", description: "", required: true
-    input name: "damping", type: "number", title: "Damping", description: ""
+    input name: "az", type: "string", title: "Azimuth Group 1", description: "", required: true
+    input name: "az2", type: "string", title: "Azimuth Group 2", description: "", required: true
+    input name: "kwp", type: "string", title: "Kilowatt Production Group 1", description: "", required: true
+    input name: "kwp2", type: "string", title: "Kilowatt Production Group 2", description: "", required: true
+    input name: "damping", type: "number", title: "Damping", description: "", defaultValue: "0"
     input("refresh_interval", "enum", title: "How often to refresh the battery data", options: [
       0: "Do NOT update",
       1: "1 Hour",
@@ -32,7 +34,7 @@ metadata {
 }
 
 def version() {
-  return "1.0.4"
+  return "1.0.1"
 }
 
 def installed() {
@@ -63,8 +65,6 @@ def updated() {
 
 import groovy.json.JsonOutput;
 def refresh() {
-  now = new Date().format("yyyy-MM-dd'T'HH:mm:ss'Z'")
-  log.info timeToday(now, location.timeZone)
   today = new Date().format('yyyy-MM-dd')
   tomorrow = new Date().next().format("yyyy-MM-dd")
   twoDays = new Date().plus(2).format("yyyy-MM-dd")
@@ -72,14 +72,24 @@ def refresh() {
   if (logEnable) log.info host
   httpGet([uri: host]) {
     resp -> def respData = resp.data
-      state.estimatedWattHoursToday = respData.result.watt_hours_day[today]
-      sendEvent(name: "power", value: state.estimatedWattHoursToday)
-      state.estimatedWattHoursTomorrow = respData.result.watt_hours_day[tomorrow]
-      sendEvent(name: "estimatedWattHoursTomorrow", value: state.estimatedWattHoursTomorrow)
-      state.estimatedWattHoursTwoDays = respData.result.watt_hours_day[twoDays]
-      sendEvent(name: "estimatedWattHoursTwoDays", value: state.estimatedWattHoursTwoDays)
-      state.JSON = JsonOutput.toJson(respData)
-      now = new Date().format("yyyy-MM-dd'T'HH:mm:ss'Z'")
-      state.lastUpdate = timeToday(now, location.timeZone)
+      estimatedWattHoursToday1 = respData.result.watt_hours_day[today]
+      estimatedWattHoursTomorrow1 = respData.result.watt_hours_day[tomorrow]
+      estimatedWattHoursTwoDays1 = respData.result.watt_hours_day[twoDays]
   }
+  host2 = "https://api.forecast.solar/estimate/${lat}/${lng}/${dec}/${az2}/${kwp2}?damping=${damping}"
+  if (logEnable) log.info host2
+  httpGet([uri: host2]) {
+    resp -> def respData = resp.data
+      estimatedWattHoursToday2 = respData.result.watt_hours_day[today]
+      estimatedWattHoursTomorrow2 = respData.result.watt_hours_day[tomorrow]
+      estimatedWattHoursTwoDays2 = respData.result.watt_hours_day[twoDays]
+  }
+  state.estimatedWattHoursToday = estimatedWattHoursToday1 + estimatedWattHoursToday2
+  sendEvent(name: "power", value: state.estimatedWattHoursToday)
+  state.estimatedWattHoursTomorrow = estimatedWattHoursTomorrow1 + estimatedWattHoursTomorrow2
+  sendEvent(name: "estimatedWattHoursTomorrow", value: state.estimatedWattHoursTomorrow)
+  state.estimatedWattHoursTwoDays = estimatedWattHoursTwoDays1 + estimatedWattHoursTwoDays2
+  sendEvent(name: "estimatedWattHoursTwoDays", value: state.estimatedWattHoursTwoDays)
+  now = new Date().format("yyyy-MM-dd'T'HH:mm:ss'Z'")
+  state.lastUpdate = timeToday(now, location.timeZone)
 }
