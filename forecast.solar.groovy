@@ -34,7 +34,7 @@ metadata {
 }
 
 def version() {
-  return "1.0.1"
+  return "1.0.3"
 }
 
 def installed() {
@@ -87,11 +87,11 @@ def refresh() {
   
   
   state.estimatedWattHoursToday = estimatedWattHoursToday1 + estimatedWattHoursToday2
-  sendEvent(name: "power", value: state.estimatedWattHoursToday)
+  if(state.estimatedWattHoursToday > 0) sendEvent(name: "power", value: state.estimatedWattHoursToday)
   state.estimatedWattHoursTomorrow = estimatedWattHoursTomorrow1 + estimatedWattHoursTomorrow2
-  sendEvent(name: "estimatedWattHoursTomorrow", value: state.estimatedWattHoursTomorrow)
+  if(state.estimatedWattHoursTomorrow > 0)sendEvent(name: "estimatedWattHoursTomorrow", value: state.estimatedWattHoursTomorrow)
   state.estimatedWattHoursTwoDays = estimatedWattHoursTwoDays1 + estimatedWattHoursTwoDays2
-  sendEvent(name: "estimatedWattHoursTwoDays", value: state.estimatedWattHoursTwoDays)
+  if(state.estimatedWattHoursTwoDays > 0)sendEvent(name: "estimatedWattHoursTwoDays", value: state.estimatedWattHoursTwoDays)
   now = new Date().format("yyyy-MM-dd'T'HH:mm:ss'Z'")
   state.lastUpdate = timeToday(now, location.timeZone)
 }
