@@ -1,6 +1,6 @@
 metadata {
   definition(
-    name: "Forecast.Solar",
+    name: "Forecast.Solar_2",
     namespace: "ke7lvb",
     author: "Ryan Lundell",
     importUrl: "https://raw.githubusercontent.com/ke7lvb/forecast.solar/2-Panel-Groups/forecast.solar.groovy",
