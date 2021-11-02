@@ -63,8 +63,6 @@ def updated() {
 
 import groovy.json.JsonOutput;
 def refresh() {
-  now = new Date().format("yyyy-MM-dd'T'HH:mm:ss'Z'")
-  log.info timeToday(now, location.timeZone)
   today = new Date().format('yyyy-MM-dd')
   tomorrow = new Date().next().format("yyyy-MM-dd")
   twoDays = new Date().plus(2).format("yyyy-MM-dd")
