@@ -53,9 +53,9 @@ def updated() {
   if (settings.refresh_interval != "0") {
     //refresh()
     if (settings.refresh_interval == "24") {
-      schedule("10 10 2 ? * * *", refresh, [overwrite: true])
+      schedule("11 10 2 ? * * *", refresh, [overwrite: true])
     } else {
-      schedule("10 10 */${settings.refresh_interval} ? * * *", refresh, [overwrite: true])
+      schedule("11 10 */${settings.refresh_interval} ? * * *", refresh, [overwrite: true])
     }
   }else{
     unschedule(refresh)
@@ -68,22 +68,24 @@ def refresh() {
   today = new Date().format('yyyy-MM-dd')
   tomorrow = new Date().next().format("yyyy-MM-dd")
   twoDays = new Date().plus(2).format("yyyy-MM-dd")
+  
   host = "https://api.forecast.solar/estimate/${lat}/${lng}/${dec}/${az}/${kwp}?damping=${damping}"
   if (logEnable) log.info host
-  httpGet([uri: host]) {
-    resp -> def respData = resp.data
-      estimatedWattHoursToday1 = respData.result.watt_hours_day[today]
-      estimatedWattHoursTomorrow1 = respData.result.watt_hours_day[tomorrow]
-      estimatedWattHoursTwoDays1 = respData.result.watt_hours_day[twoDays]
-  }
+  groupOneEstimatee = httpGet([uri: host]){resp -> def respData = resp.data}
+  log.info groupOneEstimatee
+  estimatedWattHoursToday1 = groupOneEstimatee.result.watt_hours_day[today] ?: 0
+  estimatedWattHoursTomorrow1 = groupOneEstimatee.result.watt_hours_day[tomorrow] ?: 0
+  estimatedWattHoursTwoDays1 = groupOneEstimatee.result.watt_hours_day[twoDays] ?: 0
+  
+  
   host2 = "https://api.forecast.solar/estimate/${lat}/${lng}/${dec}/${az2}/${kwp2}?damping=${damping}"
   if (logEnable) log.info host2
-  httpGet([uri: host2]) {
-    resp -> def respData = resp.data
-      estimatedWattHoursToday2 = respData.result.watt_hours_day[today]
-      estimatedWattHoursTomorrow2 = respData.result.watt_hours_day[tomorrow]
-      estimatedWattHoursTwoDays2 = respData.result.watt_hours_day[twoDays]
-  }
+  groupTwoEstimate = httpGet([uri: host2]){resp -> def respData = resp.data}
+  estimatedWattHoursToday2 = groupTwoEstimate.result.watt_hours_day[today] ?: 0
+  estimatedWattHoursTomorrow2 = groupTwoEstimate.result.watt_hours_day[tomorrow] ?: 0
+  estimatedWattHoursTwoDays2 = groupTwoEstimate.result.watt_hours_day[twoDays] ?: 0
+  
+  
   state.estimatedWattHoursToday = estimatedWattHoursToday1 + estimatedWattHoursToday2
   sendEvent(name: "power", value: state.estimatedWattHoursToday)
   state.estimatedWattHoursTomorrow = estimatedWattHoursTomorrow1 + estimatedWattHoursTomorrow2
