@@ -72,7 +72,7 @@ def refresh() {
   host = "https://api.forecast.solar/estimate/${lat}/${lng}/${dec}/${az}/${kwp}?damping=${damping}"
   if (logEnable) log.info host
   groupOneEstimatee = httpGet([uri: host]){resp -> def respData = resp.data}
-  log.info groupOneEstimatee
+  if(logEnable) log.info groupOneEstimatee
   estimatedWattHoursToday1 = groupOneEstimatee.result.watt_hours_day[today] ?: 0
   estimatedWattHoursTomorrow1 = groupOneEstimatee.result.watt_hours_day[tomorrow] ?: 0
   estimatedWattHoursTwoDays1 = groupOneEstimatee.result.watt_hours_day[twoDays] ?: 0
