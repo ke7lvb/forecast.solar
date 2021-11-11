@@ -1,6 +1,7 @@
-# forecast.solar - Hubitat
+# forecast.solar - Hubitat -  DEPRECATED
 Hubitat driver to retrieve a solar production estimate using the public API from forecast.solar
 
+I did not find this API to be very accurate, so I switched over to Solcast. Check out the new driver [here](https://github.com/ke7lvb/Solcast)
 
 # Setup Instructions:
 1. Install the driver
